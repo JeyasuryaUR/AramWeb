@@ -1,28 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Post as PostType } from "@/types";
-import { FloatingNav } from "./ui/floating-navbar";
-import { FaHeartbeat, FaPaw, FaUtensils, FaHandsHelping, FaMedkit } from "react-icons/fa";
 import { updatePostLikes } from "@/services/posts";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
 import Post from "@/components/PostComponent";
+import Link from "next/link";
+import StackGrid from "react-stack-grid";
 
 interface PostsGridProps {
   posts: PostType[];
 }
 
-const navItems = [
-  { name: "General Help", link: "/category/general-help", icon: <FaHandsHelping /> },
-  { name: "Medical Aid", link: "/category/medical-aid", icon: <FaMedkit /> },
-  { name: "Blood Donation", link: "/category/blood-donation", icon: <FaHeartbeat /> },
-  { name: "Animal Rescue", link: "/category/animal-rescue", icon: <FaPaw /> },
-  { name: "Food Assistance", link: "/category/food-assistance", icon: <FaUtensils /> },
-  { name: "Student Welfare", link: "/category/medical-aid", icon: <FaMedkit /> },
-];
-
 const PostsGrid: React.FC<PostsGridProps> = ({ posts }) => {
   const [user] = useAuthState(auth);
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
+  const [columnWidth, setColumnWidth] = useState<string | number>('33.33%');
 
   useEffect(() => {
     if (user) {
@@ -32,6 +24,23 @@ const PostsGrid: React.FC<PostsGridProps> = ({ posts }) => {
       setLikedPosts(userLikedPosts);
     }
   }, [user, posts]);
+
+  useEffect(() => {
+    const updateColumnWidth = () => {
+      if (window.innerWidth < 640) {
+        setColumnWidth('100%');
+      } else if (window.innerWidth < 1024) {
+        setColumnWidth('50%');
+      } else {
+        setColumnWidth('33.33%');
+      }
+    };
+
+    updateColumnWidth();
+    window.addEventListener('resize', updateColumnWidth);
+
+    return () => window.removeEventListener('resize', updateColumnWidth);
+  }, []);
 
   const handleLike = async (postId: string) => {
     if (!user) {
@@ -49,22 +58,20 @@ const PostsGrid: React.FC<PostsGridProps> = ({ posts }) => {
   };
 
   return (
-    <section className="py-2 relative " id="posts">
-      <div className="container mx-auto">
-        <div className="text-center mb-4">
-          <FloatingNav navItems={navItems} />
-        </div>
-        <div className="flex flex-wrap -mx-4">
-          {posts.map((post) => (
-            <Post
-              key={post.id}
-              post={post}
-              likedPosts={likedPosts}
-              handleLike={handleLike}
-            />
-          ))}
-        </div>
-      </div>
+    <section className="py-2 relative w-full" id="posts">
+      <StackGrid
+        columnWidth={columnWidth}
+        gutterWidth={16}
+        gutterHeight={16}
+        className="z-0"
+        monitorImagesLoaded
+      >
+        {posts.map((post) => (
+          <Link href={`/posts/${post.id}`} key={post.id}>
+            <Post post={post} likedPosts={likedPosts} handleLike={handleLike} />
+          </Link>
+        ))}
+      </StackGrid>
     </section>
   );
 };

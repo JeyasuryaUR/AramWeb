@@ -34,7 +34,7 @@ export default function SosPage() {
       <div className="mt-8 bg-blue-100 p-4 rounded-lg shadow-md w-full">
           <h2 className="text-2xl font-bold mb-4">How SOS Works?</h2>
           <p className="mb-2">
-            By clicking the SOS button, you register an emergency to yourself to the local police station and Aram Users.
+            By clicking the SOS button, you register an emergency to yourself to the local medical support and Aram Users.
           </p>
           <p className="mb-2">
             Before the arrival of cops, there might be an Aram user to help you out.

@@ -1,12 +1,8 @@
 import React, { useState } from "react";
 import { FaCamera } from "react-icons/fa";
-import { TbReplaceFilled } from "react-icons/tb";
+import { FileUpload } from "./ui/file-upload";
 
 interface NewDeedFormProps {
-  onMediaUpload: () => void;
-  onCameraClick: () => void;
-  media: string | undefined;
-  onMediaChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   category: string;
   onCategoryChange: (category: string) => void;
   onTermsAgree: () => void;
@@ -17,13 +13,10 @@ interface NewDeedFormProps {
   location: string;
   onLocationChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: () => Promise<void>;
+  onMediaChange: (media: string) => void;
 }
 
 const NewDeedForm: React.FC<NewDeedFormProps> = ({
-  onMediaUpload,
-  onCameraClick,
-  media,
-  onMediaChange,
   category,
   onCategoryChange,
   onTermsAgree,
@@ -34,6 +27,7 @@ const NewDeedForm: React.FC<NewDeedFormProps> = ({
   location,
   onLocationChange,
   onSubmit,
+  onMediaChange,
 }) => {
   const [isOrganizer, setIsOrganizer] = useState(false);
   const [termsAgreed, setTermsAgreed] = useState(false);
@@ -48,39 +42,22 @@ const NewDeedForm: React.FC<NewDeedFormProps> = ({
   };
 
   return (
-    <main className="flex flex-col w-full max-w-md mx-auto p-6 text-xl rounded-3xl bg-white shadow-lg">
+    <main className="flex flex-col w-full max-w-screen-md mx-auto p-6 text-xl rounded-3xl bg-white shadow-lg">
       <div className="flex items-center justify-center mb-4">
-        {media ? (
-          <div className="relative">
-            <img
-              src={media}
-              alt="Uploaded media"
-              className="w-32 h-32 rounded-xs"
-            />
-            <button
-              onClick={onMediaUpload}
-              className="absolute top-0 -right-3 p-1 bg-white rounded-full shadow-md"
-            >
-              <TbReplaceFilled className="text-secondary" />
-            </button>
-          </div>
-        ) : (
-          <>
-            <button
-              onClick={onMediaUpload}
-              className="px-4 py-2 text-white bg-secondary rounded-full hover:bg-secondary"
-            >
-              Add Media
-            </button>
-            <label className="ml-2 cursor-pointer">
-              <FaCamera
-                className="text-secondary text-2xl"
-                onClick={onCameraClick}
-              />
-            </label>
-          </>
-        )}
+        <FileUpload
+          onChange={(files) => {
+            if (files.length > 0) {
+              const file = files[0];
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                onMediaChange(reader.result as string);
+              };
+              reader.readAsDataURL(file);
+            }
+          }}
+        />
       </div>
+      
       <textarea
         className="w-full p-4 mb-4 text-black bg-transparent border-2 rounded-md resize-none placeholder-gray-500 focus:outline-none"
         placeholder="Describe Your Deed"
@@ -89,10 +66,8 @@ const NewDeedForm: React.FC<NewDeedFormProps> = ({
         onChange={onContentChange}
       />
       <div className="flex flex-col text-sm">
-        <div className="mb-4 flex items-center justify-between  gap-2">
-          <label className="flex leading-4 text-gray-700">
-            Location
-          </label>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <label className="flex leading-4 text-gray-700">Location</label>
           <input
             type="text"
             value={location}
@@ -102,24 +77,15 @@ const NewDeedForm: React.FC<NewDeedFormProps> = ({
           />
         </div>
         <div className="mb-4 flex items-center gap-2">
-          <label className="block mb-2 leading-4 text-gray-700">
-            Urgency
-          </label>
-          <div className="flex flex-col w-full">
-            <input
-              type="range"
-              min="0"
-              max="2"
-              value={urgency}
-              onChange={onUrgencyChange}
-              className="w-full"
-            />
-            <div className="flex w-full justify-between text-xs">
-              <span>Low</span>
-              <span>Medium</span>
-              <span>High</span>
-            </div>
-          </div>
+          <label className="block mb-2 leading-4 text-gray-700">Urgency</label>
+          <input
+            type="range"
+            min="0"
+            max="10"
+            value={urgency}
+            onChange={onUrgencyChange}
+            className="w-full"
+          />
         </div>
       </div>
       <div className="flex justify-center items-center mb-4 text-xs tracking-wide leading-none">
@@ -127,9 +93,7 @@ const NewDeedForm: React.FC<NewDeedFormProps> = ({
           <button
             onClick={() => onCategoryChange("HELP_OTHERS")}
             className={`px-4 py-2 font-bold uppercase rounded-full ${
-              category === "HELP_OTHERS"
-                ? "bg-secondary text-white"
-                : "text-gray-700"
+              category === "HELP_OTHERS" ? "bg-secondary text-white" : "text-gray-700"
             }`}
           >
             Help Others
@@ -137,9 +101,7 @@ const NewDeedForm: React.FC<NewDeedFormProps> = ({
           <button
             onClick={() => onCategoryChange("SELF_HELP")}
             className={`px-4 py-2 font-bold uppercase rounded-full ${
-              category === "SELF_HELP"
-                ? "bg-secondary text-white"
-                : "text-gray-700"
+              category === "SELF_HELP" ? "bg-secondary text-white" : "text-gray-700"
             }`}
           >
             Self Help
@@ -153,9 +115,7 @@ const NewDeedForm: React.FC<NewDeedFormProps> = ({
           onChange={handleOrganizerChange}
           className="mr-2"
         />
-        <label className="text-sm leading-4 text-gray-700">
-          Related to the needy.
-        </label>
+        <label className="text-sm leading-4 text-gray-700">Related to the needy.</label>
       </div>
       <div className="flex items-center mb-4">
         <input
@@ -166,10 +126,7 @@ const NewDeedForm: React.FC<NewDeedFormProps> = ({
         />
         <label className="text-sm leading-none text-gray-700">
           Agree to{" "}
-          <button
-            onClick={onTermsAgree}
-            className="text-blue-500 underline focus:outline-none"
-          >
+          <button onClick={onTermsAgree} className="text-blue-500 underline focus:outline-none">
             Terms and Conditions
           </button>
         </label>

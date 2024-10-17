@@ -1,7 +1,8 @@
-// Post.tsx
+// PostComponent.tsx
 import React from "react";
 import { Post as PostType } from "@/types";
 import { IoHeart, IoHeartOutline } from "react-icons/io5";
+import { formatDistanceToNow } from "date-fns";
 
 interface PostProps {
   post: PostType;
@@ -9,11 +10,13 @@ interface PostProps {
   handleLike: (postId: string, currentLikes: number) => void;
 }
 
+const urgencyColors = ["bg-green-500", "bg-yellow-500", "bg-red-500"];
+
 const Post: React.FC<PostProps> = ({ post, likedPosts, handleLike }) => {
   return (
-    <div className="z-1 w-full h-fit sm:w-1/2 lg:w-1/3 px-4 mb-8">
-      <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <div>
+    <div className="w-full p-2">
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
+        <div className="text-lg sm:text-xl font-semibold mb-2">
           {post.displayName}
         </div>
         {post.img && (
@@ -21,20 +24,18 @@ const Post: React.FC<PostProps> = ({ post, likedPosts, handleLike }) => {
             <img
               src={post.img}
               alt="Post Image"
-              width={700}
-              height={475}
-              className="rounded-lg"
+              className="rounded-lg w-full h-auto"
             />
           </div>
         )}
         <div className="text-gray-800">
-          <p className="mt-2 line-clamp-3">{post.content}</p>
+          <p className="mt-2 text-sm sm:text-base line-clamp-3">{post.content}</p>
           <div className="mt-4 flex justify-between items-center">
-            <span className="text-teal-400">
-              {new Date(post.date).toLocaleDateString()}
+            <span className="text-teal-400 text-xs sm:text-sm">
+              {formatDistanceToNow(new Date(post.date), { addSuffix: true })}
             </span>
             <div className="flex items-center justify-center gap-2">
-              <span className="flex text-gray-600">{post.likes}</span>
+              <span className="flex text-gray-600 text-xs sm:text-sm">{post.likes}</span>
               <button
                 className={`flex ${
                   likedPosts.includes(post.id) ? "text-red-600" : "text-gray-600"
@@ -44,6 +45,9 @@ const Post: React.FC<PostProps> = ({ post, likedPosts, handleLike }) => {
                 {likedPosts.includes(post.id) ? <IoHeart /> : <IoHeartOutline />}
               </button>
             </div>
+          </div>
+          <div className={`hidden mt-4 md:flex items-center justify-center ${urgencyColors[post.urgency]} text-white px-2 py-1 rounded-full`}>
+            {post.urgency === 2 ? "High Urgency" : post.urgency === 1 ? "Medium Urgency" : "Low Urgency"}
           </div>
         </div>
       </div>

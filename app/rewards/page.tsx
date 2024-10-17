@@ -18,6 +18,7 @@ export default function Rewards() {
         voucher.id === id ? { ...voucher, redeemed: true } : voucher
       ));
       setPoints(points - pointsRequired);
+      alert("Voucher redeemed successfully!");
     } else {
       alert("Not enough points to redeem this voucher.");
     }

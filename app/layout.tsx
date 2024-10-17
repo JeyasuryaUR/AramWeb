@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { FloatingDock } from "@/components/ui/floating-dock";
+import { Toaster } from "react-hot-toast";
 import {
   FaCoins,
   FaCompass,
@@ -39,6 +40,7 @@ export default function RootLayout({
           {children}
         </div>
         <FloatingDock items={items} className="fixed bottom-0 z-100 shadow-xs" />
+        <Toaster />
       </body>
     </html>
   );

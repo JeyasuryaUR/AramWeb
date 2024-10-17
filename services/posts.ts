@@ -92,6 +92,7 @@ export const fetchPostById = async (postId: string): Promise<Post | null> => {
     const postDoc = await getDoc(postRef);
     if (postDoc.exists()) {
       const data = postDoc.data();
+      console.log("Post data fetched:", data); // Debug: Check if post data is fetched
       return {
         id: postDoc.id,
         userId: data.userId,
@@ -107,6 +108,7 @@ export const fetchPostById = async (postId: string): Promise<Post | null> => {
         status: data.status, // Add status field
       } as Post;
     } else {
+      console.error("Post not found");
       return null;
     }
   } catch (e) {

@@ -1,4 +1,3 @@
-// Profile.tsx
 "use client";
 
 import { auth } from "@/lib/firebase";
@@ -8,18 +7,17 @@ import { getUserPosts, updatePostLikes } from "@/services/posts";
 import { Post as PostType } from "@/types";
 import { FaHeart, FaUserFriends, FaPen, FaUserCircle } from "react-icons/fa";
 import Post from "@/components/PostComponent"; // Adjust the import path as necessary
+import PostsGrid from "@/components/PostsGrid";
 
 export default function Profile() {
   const [user] = useAuthState(auth);
   const [userPosts, setUserPosts] = useState<PostType[]>([]);
-  const [likedPosts, setLikedPosts] = useState<string[]>([]);
 
   useEffect(() => {
     if (user) {
       const userLikedPosts = userPosts
         .filter((post) => (post.likedBy || []).includes(user.uid))
         .map((post) => post.id);
-      setLikedPosts(userLikedPosts);
     }
   }, [user, userPosts]);
 
@@ -32,19 +30,6 @@ export default function Profile() {
       fetchUserPosts();
     }
   }, [user]);
-
-  const handleLike = async (postId: string, currentLikes: number) => {
-    if (!user) {
-      alert("You need to be logged in to like a post.");
-      return;
-    }
-
-    if (likedPosts.includes(postId)) return; // User has already liked this post
-
-    await updatePostLikes(postId, user.uid);
-
-    setLikedPosts((prevLikedPosts) => [...prevLikedPosts, postId]);
-  };
 
   if (!user) {
     return (
@@ -101,18 +86,9 @@ export default function Profile() {
       </div>
 
       {/* My Deeds */}
-      <div className=" pt-6 flex flex-col justify-center items-center  w-full mt-4">
+      <div className="container pt-6 flex flex-col justify-center items-center  w-full mt-4">
         <h2 className="text-2xl font-bold mb-4">My Deeds</h2>
-        <div className="flex flex-wrap -mx-4">
-          {userPosts.map((post) => (
-            <Post
-              key={post.id}
-              post={post}
-              likedPosts={likedPosts}
-              handleLike={handleLike}
-            />
-          ))}
-        </div>
+        <PostsGrid posts={userPosts} />
       </div>
     </div>
   );

@@ -67,13 +67,13 @@ export default function Navbar() {
         </div>
         <div className="flex flex-wrap justify-center items-center gap-2">
           <Link href="/sos">
-            <div className="bg-gradient-to-b from-red-400 to-red-600 text-white font-bold py-2 px-4 rounded-md shadow-md hover:shadow-sm transition-all duration-300 ease-in-out">
+            <div className="bg-gradient-to-b from-red-400 to-red-600 text-white font-bold py-1 px-2 md:py-2 md:px-4 rounded-md shadow-md hover:shadow-sm transition-all duration-300 ease-in-out">
               <MdSos className="h-8 w-8 md:h-10 md:w-10" />
             </div>
           </Link>
           <div className="space-x-4">
             {user ? (
-              <div className="flex items-center bg-white w-full py-3 px-3 rounded-xl shadow-md">
+              <div className="flex items-center bg-white w-full md:p-3 p-2 rounded-xl shadow-sm md:shadow-md">
                 <div className="userDetails ml-3">
                   <Link
                     href="/profile"
@@ -92,7 +92,7 @@ export default function Navbar() {
                 </div>
                 <button
                   onClick={handleSignOut}
-                  className="ml-4 px-4 py-4 bg-red-500 text-white rounded-full hover:bg-red-600"
+                  className="ml-4 md:p-4 p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
                 >
                   <FaPowerOff />
                 </button>

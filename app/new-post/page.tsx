@@ -7,9 +7,30 @@ import { auth } from "@/lib/firebase";
 import { Post } from "@/types";
 import { useRouter } from "next/navigation";
 
+const categorizePost = (description: string): string => {
+  const keywords = {
+    GH: ["help", "assist", "support"],
+    MA: ["medical", "health", "doctor", "hospital"],
+    BD: ["blood", "donation", "donate"],
+    AA: ["animal", "pet", "rescue"],
+    FA: ["food", "meal", "hunger"],
+    SW: ["student", "education", "school", "college"],
+  };
+
+  for (const [category, words] of Object.entries(keywords)) {
+    for (const word of words) {
+      if (description.toLowerCase().includes(word)) {
+        return category;
+      }
+    }
+  }
+
+  return "GH"; // Default to General Help
+};
+
 export default function NewPost() {
   const [user] = useAuthState(auth);
-  const [category, setCategory] = useState<string>("HELP_OTHERS");
+  const [category, setCategory] = useState<string>("GH");
   const [media, setMedia] = useState<string | undefined>(undefined);
   const router = useRouter();
   const [termsAgreed, setTermsAgreed] = useState<boolean>(false);
@@ -17,51 +38,30 @@ export default function NewPost() {
   const [content, setContent] = useState<string>("");
   const [location, setLocation] = useState<string>("");
 
-  const handleMediaUpload = () => {
-    console.log("Media upload button clicked");
-    document.getElementById("media-upload")?.click();
-  };
-
-  const handleCameraClick = () => {
-    console.log("Camera button clicked");
-  };
-
-  const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      console.log("Selected file:", file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setMedia(reader.result as string);
-        console.log("Media uploaded:", reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleCategoryChange = (newCategory: string) => {
     setCategory(newCategory);
-    // console.log("Category changed to:", newCategory);
   };
 
   const handleTermsAgree = () => {
     setTermsAgreed(true);
-    // console.log("Terms and conditions agreed");
   };
 
   const handleUrgencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUrgency(Number(e.target.value));
-    // console.log("Urgency level changed to:", e.target.value);
   };
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
-    // console.log("Content changed to:", e.target.value);
+    const newCategory = categorizePost(e.target.value);
+    setCategory(newCategory);
   };
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocation(e.target.value);
-    // console.log("Location changed to:", e.target.value);
+  };
+
+  const handleMediaChange = (media: string) => {
+    setMedia(media);
   };
 
   const handleSubmit = async () => {
@@ -80,15 +80,14 @@ export default function NewPost() {
       likes: 0,
       location,
       urgency,
-      relatedToNeedy: category === "HELP_OTHERS",
+      relatedToNeedy: category === "GH",
       date: new Date(),
     };
 
     try {
       await addPost(newPost);
       console.log("Post added successfully:", newPost);
-      // Reset form or navigate to another page
-      router.push("/"); 
+      router.push("/");
     } catch (error) {
       console.error("Error adding post:", error);
     }
@@ -97,9 +96,6 @@ export default function NewPost() {
   return (
     <div className="mx-auto p-4">
       <NewDeedForm
-        onMediaUpload={handleMediaUpload}
-        onCameraClick={handleCameraClick}
-        media={media}
         onMediaChange={handleMediaChange}
         category={category}
         onCategoryChange={handleCategoryChange}
@@ -111,13 +107,6 @@ export default function NewPost() {
         location={location}
         onLocationChange={handleLocationChange}
         onSubmit={handleSubmit}
-      />
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleMediaChange}
-        className="hidden"
-        id="media-upload"
       />
     </div>
   );

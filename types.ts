@@ -23,6 +23,7 @@ export interface Post {
 
 export interface Comment {
   id: string;
+  displayName: string;
   postId: string;
   userId: string;
   content: string;
