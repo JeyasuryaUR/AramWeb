@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, doc, updateDoc, getDoc, query, where, arrayUnion, arrayRemove } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, updateDoc, getDoc, query, where, orderBy, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db, storage } from "@/lib/firebase";
 import { Post } from "@/types";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -27,7 +27,9 @@ const updatePostLikes = async (postId: string, userId: string, isLiked: boolean)
 const fetchPosts = async (): Promise<Post[]> => {
   const posts: Post[] = [];
   try {
-    const querySnapshot = await getDocs(collection(db, "posts"));
+    const postsRef = collection(db, "posts");
+    const q = query(postsRef, orderBy("date", "desc"));
+    const querySnapshot = await getDocs(q);
     querySnapshot.forEach((doc) => {
       const data = doc.data();
       posts.push({
@@ -54,7 +56,7 @@ const fetchPosts = async (): Promise<Post[]> => {
 const getUserPosts = async (userId: string) => {
   try {
     const postsRef = collection(db, "posts");
-    const q = query(postsRef, where("userId", "==", userId));
+    const q = query(postsRef, where("userId", "==", userId), orderBy("date", "desc"));
     const querySnapshot = await getDocs(q);
     const posts: Post[] = [];
     querySnapshot.forEach((doc) => {
