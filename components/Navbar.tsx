@@ -1,5 +1,5 @@
 "use client";
-import { auth, provider } from "@/lib/firebase";
+import { auth, googleProvider } from "@/lib/firebase";
 import { signInWithPopup, signOut } from "firebase/auth";
 import Link from "next/link";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -11,7 +11,7 @@ export default function Navbar() {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error("Error during sign-in:", error);
     }

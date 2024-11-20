@@ -8,6 +8,7 @@ import { fetchPostById, updatePostLikes } from "@/services/posts";
 import { Post as PostType, Comment as CommentType } from "@/types";
 import { IoHeart, IoHeartOutline } from "react-icons/io5";
 import { LiaComment } from "react-icons/lia";
+import { useSwipeable } from "react-swipeable";
 
 export default function PostPage() {
   const [user] = useAuthState(auth);
@@ -16,6 +17,7 @@ export default function PostPage() {
   const [post, setPost] = useState<PostType | null>(null);
   const [comments, setComments] = useState<CommentType[]>([]);
   const [newComment, setNewComment] = useState<string>("");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     if (postId) {
@@ -60,6 +62,22 @@ export default function PostPage() {
     setNewComment("");
   };
 
+  const handleNextImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % (post?.imgs.length || 1));
+  };
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex(
+      (prevIndex) => (prevIndex - 1 + (post?.imgs.length || 1)) % (post?.imgs.length || 1)
+    );
+  };
+
+  const handlers = useSwipeable({
+    onSwipedLeft: handleNextImage,
+    onSwipedRight: handlePrevImage,
+    trackMouse: true,
+  });
+
   if (!post) {
     return <div className="flex w-full h-full justify-center items-center">Loading...</div>;
   }
@@ -73,12 +91,45 @@ export default function PostPage() {
         BACK
       </button>
       <div className="bg-white p-6 rounded-lg shadow-md w-full">
-        <div className="flex items-center mb-4">
-          <img
-            src={post.img}
-            alt={post.content}
-            className="w-full h-64 object-cover rounded-lg mb-4"
-          />
+        <div className="relative mb-4" {...handlers}>
+          <div className="relative w-full h-64 overflow-hidden rounded-lg">
+            {post.imgs.map((img, index) => (
+              <img
+                key={index}
+                src={img}
+                alt={`Post Image ${index + 1}`}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+                  index === currentImageIndex ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            ))}
+            {post.imgs.length > 1 && (
+              <>
+                <button
+                  className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full"
+                  onClick={handlePrevImage}
+                >
+                  &lt;
+                </button>
+                <button
+                  className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full"
+                  onClick={handleNextImage}
+                >
+                  &gt;
+                </button>
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                  {post.imgs.map((_, index) => (
+                    <span
+                      key={index}
+                      className={`block w-2 h-2 rounded-full ${
+                        index === currentImageIndex ? "bg-white" : "bg-gray-400"
+                      }`}
+                    ></span>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold">{post.displayName}</h1>
@@ -88,16 +139,13 @@ export default function PostPage() {
               className="flex items-center space-x-2 text-red-500"
             >
               {post.likedBy?.includes(user?.uid || "") ? (
-                // <FaHeart className="text-2xl" />
                 <IoHeart className="text-2xl" />
               ) : (
-                // <FaRegHeart className="text-2xl" />
                 <IoHeartOutline className="text-2xl" />
               )}
               <span>{post.likes}</span>
             </button>
             <button className="flex items-center space-x-2 text-gray-500">
-              {/* <FaComment className="text-2xl" /> */}
               <LiaComment className="text-2xl" />
               <span>{comments.length}</span>
             </button>

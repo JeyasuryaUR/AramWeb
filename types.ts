@@ -10,11 +10,12 @@ export interface Post {
   id: string;
   userId: string;
   displayName: string;
-  img?: string;
+  imgs: string[];
   content: string;
   likes: number;
-  likedBy?: string[]; // New field to store user IDs who liked the post
-  location: string;
+  likedBy?: string[];
+  location: [number, number]; // Change to array of [latitude, longitude]
+  landmark: string; // Add landmark field
   urgency: number;
   relatedToNeedy: boolean;
   status?: string;

@@ -3,6 +3,7 @@ import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { IconUpload } from "@tabler/icons-react";
 import { useDropzone, Accept } from "react-dropzone";
+import { FaTimes } from "react-icons/fa";
 
 const mainVariant = {
   initial: {
@@ -27,8 +28,10 @@ const secondaryVariant = {
 
 export const FileUpload = ({
   onChange,
+  disabled,
 }: {
   onChange?: (files: File[]) => void;
+  disabled?: boolean;
 }) => {
   const [images, setImages] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,8 +42,16 @@ export const FileUpload = ({
     onChange && onChange(updatedImages);
   };
 
+  const handleRemoveImage = (index: number) => {
+    const updatedImages = images.filter((_, i) => i !== index);
+    setImages(updatedImages);
+    onChange && onChange(updatedImages);
+  };
+
   const handleClick = () => {
-    fileInputRef.current?.click();
+    if (!disabled) {
+      fileInputRef.current?.click();
+    }
   };
 
   const { getRootProps, isDragActive } = useDropzone({
@@ -58,7 +69,7 @@ export const FileUpload = ({
       <motion.div
         onClick={handleClick}
         whileHover="animate"
-        className="p-10 group/image block rounded-lg cursor-pointer w-full relative overflow-hidden"
+        className={`p-10 group/image block rounded-lg cursor-pointer w-full relative overflow-hidden `}
       >
         <input
           ref={fileInputRef}
@@ -67,6 +78,7 @@ export const FileUpload = ({
           accept="image/*"
           onChange={(e) => handleFileChange(Array.from(e.target.files || []))}
           className="hidden"
+          disabled={disabled}
         />
         <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]">
           <GridPattern />
@@ -94,6 +106,12 @@ export const FileUpload = ({
                     alt={image.name}
                     className="w-full h-full object-cover rounded-md"
                   />
+                  <button
+                    className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full p-1"
+                    onClick={() => handleRemoveImage(idx)}
+                  >
+                    <FaTimes />
+                  </button>
                   <div className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
                     {(image.size / (1024 * 1024)).toFixed(2)} MB
                   </div>

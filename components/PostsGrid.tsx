@@ -42,18 +42,19 @@ const PostsGrid: React.FC<PostsGridProps> = ({ posts }) => {
     return () => window.removeEventListener('resize', updateColumnWidth);
   }, []);
 
-  const handleLike = async (postId: string) => {
+  const handleLike = async (post: PostType) => {
     if (!user) {
       alert("You need to be logged in to like a post.");
       return;
     }
 
-    const isLiked = likedPosts.includes(postId);
+    const isLiked = likedPosts.includes(post.id);
 
-    await updatePostLikes(postId, user.uid, !isLiked);
+    post.likes += isLiked ? -1 : 1;
+    await updatePostLikes(post.id, user.uid, !isLiked); 
 
     setLikedPosts((prevLikedPosts) =>
-      isLiked ? prevLikedPosts.filter((id) => id !== postId) : [...prevLikedPosts, postId]
+      isLiked ? prevLikedPosts.filter((id) => id !== post.id) : [...prevLikedPosts, post.id]
     );
   };
 
@@ -67,9 +68,12 @@ const PostsGrid: React.FC<PostsGridProps> = ({ posts }) => {
         monitorImagesLoaded
       >
         {posts.map((post) => (
-          <Link href={`/posts/${post.id}`} key={post.id}>
-            <Post post={post} likedPosts={likedPosts} handleLike={handleLike} />
-          </Link>
+          
+          <Post post={post} likedPosts={likedPosts} handleLike={handleLike} key={post.id}/>
+
+          // <Link href={`/posts/${post.id}`} key={post.id}>
+          //   <Post post={post} likedPosts={likedPosts} handleLike={handleLike} />
+          // </Link>
         ))}
       </StackGrid>
     </section>

@@ -1,8 +1,10 @@
 import { collection, addDoc, getDocs, doc, updateDoc, getDoc, query, where, arrayUnion, arrayRemove } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
 import { Post } from "@/types";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import imageCompression from "browser-image-compression";
 
-export const updatePostLikes = async (postId: string, userId: string, isLiked: boolean) => {
+const updatePostLikes = async (postId: string, userId: string, isLiked: boolean) => {
   const postRef = doc(db, "posts", postId);
   const postDoc = await getDoc(postRef);
 
@@ -22,7 +24,7 @@ export const updatePostLikes = async (postId: string, userId: string, isLiked: b
   }
 };
 
-export const fetchPosts = async (): Promise<Post[]> => {
+const fetchPosts = async (): Promise<Post[]> => {
   const posts: Post[] = [];
   try {
     const querySnapshot = await getDocs(collection(db, "posts"));
@@ -32,14 +34,15 @@ export const fetchPosts = async (): Promise<Post[]> => {
         id: doc.id,
         userId: data.userId,
         displayName: data.displayName,
-        img: data.img,
+        imgs: data.imgs || [],
         content: data.content,
         likes: data.likes,
-        likedBy: data.likedBy || [], // Ensure likedBy is an array
+        likedBy: data.likedBy || [],
         location: data.location,
+        landmark: data.landmark,
         urgency: data.urgency,
         relatedToNeedy: data.relatedToNeedy,
-        date: data.date.toDate(), // Convert Firestore timestamp to Date
+        date: data.date.toDate(),
       });
     });
   } catch (e) {
@@ -48,7 +51,7 @@ export const fetchPosts = async (): Promise<Post[]> => {
   return posts;
 };
 
-export const getUserPosts = async (userId: string) => {
+const getUserPosts = async (userId: string) => {
   try {
     const postsRef = collection(db, "posts");
     const q = query(postsRef, where("userId", "==", userId));
@@ -60,14 +63,15 @@ export const getUserPosts = async (userId: string) => {
         id: doc.id,
         userId: data.userId,
         displayName: data.displayName,
-        img: data.img,
+        imgs: data.imgs || [],
         content: data.content,
         likes: data.likes,
-        likedBy: data.likedBy || [], // Ensure likedBy is an array
+        likedBy: data.likedBy || [],
         location: data.location,
+        landmark: data.landmark,
         urgency: data.urgency,
         relatedToNeedy: data.relatedToNeedy,
-        date: data.date.toDate(), // Convert Firestore timestamp to Date
+        date: data.date.toDate(),
       } as Post);
     });
     return posts;
@@ -77,35 +81,38 @@ export const getUserPosts = async (userId: string) => {
   }
 };
 
-export const addPost = async (post: Post) => {
+const addPost = async (post: Post) => {
   try {
     const docRef = await addDoc(collection(db, "posts"), post);
     console.log("Document written with ID: ", docRef.id);
+    return docRef;
   } catch (e) {
     console.error("Error adding document: ", e);
+    throw e;
   }
 };
 
-export const fetchPostById = async (postId: string): Promise<Post | null> => {
+const fetchPostById = async (postId: string): Promise<Post | null> => {
   try {
     const postRef = doc(db, "posts", postId);
     const postDoc = await getDoc(postRef);
     if (postDoc.exists()) {
       const data = postDoc.data();
-      console.log("Post data fetched:", data); // Debug: Check if post data is fetched
+      console.log("Post data fetched:", data);
       return {
         id: postDoc.id,
         userId: data.userId,
         displayName: data.displayName,
-        img: data.img,
+        imgs: data.imgs || [],
         content: data.content,
         likes: data.likes,
-        likedBy: data.likedBy || [], // Ensure likedBy is an array
+        likedBy: data.likedBy || [],
         location: data.location,
+        landmark: data.landmark,
         urgency: data.urgency,
         relatedToNeedy: data.relatedToNeedy,
-        date: data.date.toDate(), // Convert Firestore timestamp to Date
-        status: data.status, // Add status field
+        date: data.date.toDate(),
+        status: data.status,
       } as Post;
     } else {
       console.error("Post not found");
@@ -116,3 +123,34 @@ export const fetchPostById = async (postId: string): Promise<Post | null> => {
     return null;
   }
 };
+
+const compressAndUploadImage = async (file: File, fullName: string, postNumber: string): Promise<string> => {
+  let compressedFile = file;
+
+  if (file.size > 100 * 1024) {
+    compressedFile = await imageCompression(file, {
+      maxSizeMB: 0.1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    });
+  } else {
+    compressedFile = await imageCompression(file, {
+      maxSizeMB: file.size / 1024 / 1024 * 0.9,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    });
+  }
+
+  const imageName = generateImageName(fullName, postNumber);
+  const storageRef = ref(storage, `images/${imageName}`);
+  await uploadBytes(storageRef, compressedFile);
+  return getDownloadURL(storageRef);
+};
+
+const generateImageName = (fullName: string, postNumber: string): string => {
+  const sanitizedFullName = fullName.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const currentDateTime = new Date().toLocaleString().replace(/[^a-z0-9]/gi, "");
+  return `${sanitizedFullName}_${currentDateTime}_${postNumber}`;
+};
+
+export { fetchPosts, addPost, fetchPostById, getUserPosts, updatePostLikes, compressAndUploadImage };
